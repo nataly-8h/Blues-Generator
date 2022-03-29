@@ -14,28 +14,32 @@
 export default {
   name: "HelloWorld",
   data() {
-    return{
-      notes: ["C4", "Eb4", "F4", "Gb4", "G4", "Bb4", "C5",],
-    }
+    return {
+      notes: ["C4", "Eb4", "F4", "Gb4", "G4", "Bb4", "C5"],
+      probability: [
+        [0.05, 0.19, 0.14, 0.14, 0.14, 0.2, 0.14], //C4
+        [0.14, 0.05, 0.14, 0.2, 0.14, 0.19, 0.14], //Eb4
+        [0.14, 0.14, 0.05, 0.14, 0.19, 0.14, 0.2], //F4
+        [0.14, 0.14, 0.2, 0.05, 0.19, 0.14, 0.14], //Gb4
+        [0.14, 0.14, 0.2, 0.19, 0.05, 0.14, 0.14], //G4
+        [0.14, 0.14, 0.14, 0.2, 0.19, 0.05, 0.14], //Bb4
+        [0.19, 0.14, 0.14, 0.14, 0.2, 0.14, 0.05], //C5
+      ],
+      frequency: ["261.63", "311.13", "349.22", "369.99", "391.99", "466.16", "523.25"],
+      last:[0],
+    };
   },
   props: {
     msg: String,
   },
   created() {
-    // window.addEventListener("keydown", (e) => {
-    //   if (e.key == " " && !this.pressed) {
-    //     console.log("spacebar");
-    //     //play a middle 'C' for the duration of an 8th note
-    //     synth.triggerAttackRelease("C4", "8n", now);
-    //   }
-    // });
+
     window.addEventListener("keyup", (e) => {
       if (e.key == " " && !this.pressed) {
-        console.log(this.notes[1]);
-        //play a middle 'C' for the duration of an 8th note
-        //synth.triggerAttackRelease("C4", "8n");
-        // this.playScale();
-        this.attack();
+        // console.log(this.notes[1]);
+        let nextNote = this.calculateNext();
+        console.log("Playing: " + this.notes[nextNote] + " Frequency: " + this.frequency[nextNote])
+        synth.triggerAttackRelease(this.notes[nextNote], "8n");
       }
     });
   },
@@ -51,8 +55,26 @@ export default {
       synth.triggerAttackRelease("Bb4", "8n", now + 1.5);
       synth.triggerAttackRelease("C5", "8n", now + 1.8);
     },
-    attack(){
-      synth.triggerAttackRelease("C4", "8n");
+    calculateNext(){
+      // if(this.last[0] < 0){
+      //   console.log("first");
+      //   this.last[0] ++;
+      //   return 0;
+      // }else{
+        let nextNote = parseFloat(Math.random()).toFixed(2) ;
+        let sum = this.probability[this.last[0]][0];
+        // console.log(sum + " " + nextNote);
+        let play = 0;
+        
+        while(sum <= nextNote){
+          sum += this.probability[this.last[0]][play];
+          play ++;
+        }
+        this.last[0] = play;
+        return play;
+      // }
+      // let next = this.probability[0];
+
     }
   },
 };

@@ -3,6 +3,9 @@
     <h1>{{ msg }}</h1>
     <p>Press Spacebar to start generating Blues!</p>
     <h3>Need some chords?</h3>
+    <br>
+     <button class="btn btn-indigo outline" @click="playChords">Play
+        </button>
     <!-- <ul>
       <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
       <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
@@ -15,9 +18,9 @@ export default {
   name: "HelloWorld",
   data() {
     return {
-      notes: ["C4", "Eb4", "F4", "Gb4", "G4", "Bb4", "C5"],
+      notes: ["C3", "Eb3", "F3", "Gb3", "G3", "Bb3", "C4",],
       probability: [
-        [0.05, 0.19, 0.14, 0.14, 0.14, 0.2, 0.14], //C4
+        [0.02, 0.22, 0.14, 0.14, 0.14, 0.2, 0.14], //C4
         [0.14, 0.05, 0.14, 0.2, 0.14, 0.19, 0.14], //Eb4
         [0.14, 0.14, 0.05, 0.14, 0.19, 0.14, 0.2], //F4
         [0.14, 0.14, 0.2, 0.05, 0.19, 0.14, 0.14], //Gb4
@@ -25,8 +28,11 @@ export default {
         [0.14, 0.14, 0.14, 0.2, 0.19, 0.05, 0.14], //Bb4
         [0.19, 0.14, 0.14, 0.14, 0.2, 0.14, 0.05], //C5
       ],
-      frequency: ["261.63", "311.13", "349.22", "369.99", "391.99", "466.16", "523.25"],
+      // frequency: ["261.63", "311.13", "349.22", "369.99", "391.99", "466.16", "523.25"],
+      frequency: ["130.81", "155.56", "174.61", "185", "196", "233.08", "246.94"],
       last:[0],
+      loop: null,
+      chords: false,
     };
   },
   props: {
@@ -56,26 +62,50 @@ export default {
       synth.triggerAttackRelease("C5", "8n", now + 1.8);
     },
     calculateNext(){
-      // if(this.last[0] < 0){
-      //   console.log("first");
-      //   this.last[0] ++;
-      //   return 0;
-      // }else{
+     
         let nextNote = parseFloat(Math.random()).toFixed(2) ;
         let sum = this.probability[this.last[0]][0];
-        // console.log(sum + " " + nextNote);
+        console.log("start" + sum + " " + nextNote);
         let play = 0;
         
-        while(sum <= nextNote){
+        for(let i = 0; i < 7; i++ ){
+          console.log(sum + " " + nextNote);
           sum += this.probability[this.last[0]][play];
-          play ++;
+          if(sum < nextNote){
+            play ++;
+          }else{
+             this.last[0] = play;
+            return play;
+          }
+          
         }
-        this.last[0] = play;
-        return play;
+          return play;
+      
+       
       // }
       // let next = this.probability[0];
 
-    }
+    },
+    playChords(){
+     
+     let chordNum = 0;
+      const chords = [
+        ["B3", "D3", "F#3"], // Bm (vi)
+        ["G3", "B3", "D3"], // G (iv)
+        ["D3", "F#3", "A3"], // D (i)
+        ["A3", "C#3", "E3"], // A (v)
+      ];
+      const synth = new Tone.PolySynth().toDestination();
+      synth.volume.value = -6;
+      while(!this.chords){
+        new Tone.Loop
+        console.log("boton");
+        synth.triggerAttackRelease(chords[chordNum], "2m");
+        chordNum = (chordNum + 1) % 4;
+      } 
+         
+      
+    },
   },
 };
 import * as Tone from "tone";

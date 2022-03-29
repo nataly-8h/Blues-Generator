@@ -2,6 +2,7 @@
   <div class="hello">
     <h1>{{ msg }}</h1>
     <p>Press Spacebar to start generating Blues!</p>
+    <p>Or press P key to hear the full scale</p>
     <h3>Need some Chords?</h3>
     <br />
     <button class="btn btn-indigo outline" @click="playChords">Play</button>
@@ -55,21 +56,34 @@ export default {
         synth.triggerAttackRelease(this.notes[nextNote], "8n");
       }
       if (e.key == "p" && !this.pressed) {
-        this.playingChords();
+        this.playScale();
       }
     });
   },
   methods: {
-    playScale() {
+    async playScale() {
       const now = Tone.now();
 
-      synth.triggerAttackRelease("C4", "8n", now);
-      synth.triggerAttackRelease("Eb4", "8n", now + 0.1);
-      synth.triggerAttackRelease("F4", "8n", now + 0.6);
-      synth.triggerAttackRelease("Gb4", "8n", now + 0.9);
-      synth.triggerAttackRelease("G4", "8n", now + 1.2);
-      synth.triggerAttackRelease("Bb4", "8n", now + 1.5);
-      synth.triggerAttackRelease("C5", "8n", now + 1.8);
+      let scaleNotes = [
+        "C4",
+        "Eb4",
+        "F4",
+        "Gb4",
+        "G4",
+        "Bb4",
+        "C5",
+        "Bb4",
+        "G4",
+        "Gb4",
+        "F4",
+        "Eb4",
+        "C4",
+      ];
+      let timeSum = 0;
+      for (let i = 0; i < scaleNotes.length; i++) {
+        synth.triggerAttackRelease(scaleNotes[i], "6n", now + timeSum);
+        timeSum += 0.06;
+      }
     },
     calculateNext() {
       let nextNote = parseFloat(Math.random()).toFixed(2);
@@ -102,8 +116,8 @@ export default {
           player.volume.value = -3;
           player.start();
         });
+        this.playingChords = true;
       }
-      this.playingChords = true;
     },
   },
 };

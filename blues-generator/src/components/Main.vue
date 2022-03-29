@@ -4,16 +4,11 @@
     <p>Press Spacebar to start generating Blues!</p>
     <h3>Need some Chords?</h3>
     <br />
-    <button class="btn btn-indigo outline" @click="changeState">Play</button>
-    <!-- <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul> -->
+    <button class="btn btn-indigo outline" @click="playChords">Play</button>
   </div>
 </template>
 
 <script>
-const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 export default {
   name: "HelloWorld",
   data() {
@@ -59,6 +54,9 @@ export default {
         );
         synth.triggerAttackRelease(this.notes[nextNote], "8n");
       }
+      if (e.key == "p" && !this.pressed) {
+        this.playingChords();
+      }
     });
   },
   methods: {
@@ -94,38 +92,18 @@ export default {
       // }
       // let next = this.probability[0];
     },
-    async changeState() {
-      if (this.playingChords) {
-        await Tone.start();
-        Tone.Transport.bpm.value = 141;
-        this.playChords();
-        Tone.Transport.start();
-      } else {
-        Tone.Transport.stop();
-        // this.loop.rese();
+    playChords() {
+      if (!this.playingChords) {
+        const player = new Tone.Player({
+          url: "./BluesBackingTrack.mp3",
+          autostart: true,
+        }).toDestination();
+        Tone.loaded().then(() => {
+          player.volume.value = -3;
+          player.start();
+        });
       }
-      this.playingChords = !this.playingChords;
-    },
-    async playChords() {
-      console.log(this.playingChords);
-
-      let chordNum = 0;
-      const playingChords = [
-        ["B3", "D3", "F#3"], // Bm (vi)
-        ["G3", "B3", "D3"], // G (iv)
-        ["D3", "F#3", "A3"], // D (i)
-        ["A3", "C#3", "E3"], // A (v)
-      ];
-      const synth = new Tone.PolySynth().toDestination();
-      synth.volume.value = -6;
-      // this.loop = new Tone.loop(() =>{
-      while (this.playingChords) {
-        console.log("plating chords");
-        synth.triggerAttackRelease(playingChords[chordNum], "8n");
-        chordNum = (chordNum + 1) % 4;
-        await delay(1);
-      }
-      // }, "2m").start(0);
+      this.playingChords = true;
     },
   },
 };

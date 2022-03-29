@@ -2,10 +2,9 @@
   <div class="hello">
     <h1>{{ msg }}</h1>
     <p>Press Spacebar to start generating Blues!</p>
-    <h3>Need some chords?</h3>
-    <br>
-     <button class="btn btn-indigo outline" @click="playChords">Play
-        </button>
+    <h3>Need some Chords?</h3>
+    <br />
+    <button class="btn btn-indigo outline" @click="changeState">Play</button>
     <!-- <ul>
       <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
       <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
@@ -14,37 +13,50 @@
 </template>
 
 <script>
+const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 export default {
   name: "HelloWorld",
   data() {
     return {
-      notes: ["C3", "Eb3", "F3", "Gb3", "G3", "Bb3", "C4",],
+      notes: ["C3", "Eb3", "F3", "Gb3", "G3", "Bb3", "C4"],
       probability: [
-        [0.02, 0.22, 0.14, 0.14, 0.14, 0.2, 0.14], //C4
-        [0.14, 0.05, 0.14, 0.2, 0.14, 0.19, 0.14], //Eb4
-        [0.14, 0.14, 0.05, 0.14, 0.19, 0.14, 0.2], //F4
-        [0.14, 0.14, 0.2, 0.05, 0.19, 0.14, 0.14], //Gb4
-        [0.14, 0.14, 0.2, 0.19, 0.05, 0.14, 0.14], //G4
-        [0.14, 0.14, 0.14, 0.2, 0.19, 0.05, 0.14], //Bb4
-        [0.19, 0.14, 0.14, 0.14, 0.2, 0.14, 0.05], //C5
+        [0.02, 0.25, 0.25, 0.17, 0.17, 0.7, 0.7], //C4
+        [0.25, 0.02, 0.25, 0.17, 0.17, 0.7, 0.7], //Eb4
+        [0.17, 0.25, 0.02, 0.25, 0.17, 0.7, 0.7], //F4
+        [0.7, 0.17, 0.25, 0.02, 0.25, 0.17, 0.7], //Gb4
+        [0.7, 0.7, 0.17, 0.25, 0.02, 0.25, 0.17], //G4
+        [0.7, 0.7, 0.17, 0.17, 0.25, 0.02, 0.25], //Bb4
+        [0.7, 0.7, 0.17, 0.17, 0.25, 0.25, 0.02], //C5
       ],
       // frequency: ["261.63", "311.13", "349.22", "369.99", "391.99", "466.16", "523.25"],
-      frequency: ["130.81", "155.56", "174.61", "185", "196", "233.08", "246.94"],
-      last:[0],
+      frequency: [
+        "130.81",
+        "155.56",
+        "174.61",
+        "185",
+        "196",
+        "233.08",
+        "246.94",
+      ],
+      last: [0],
       loop: null,
-      chords: false,
+      playingChords: false,
     };
   },
   props: {
     msg: String,
   },
   created() {
-
     window.addEventListener("keyup", (e) => {
       if (e.key == " " && !this.pressed) {
         // console.log(this.notes[1]);
         let nextNote = this.calculateNext();
-        console.log("Playing: " + this.notes[nextNote] + " Frequency: " + this.frequency[nextNote])
+        console.log(
+          "Playing: " +
+            this.notes[nextNote] +
+            " Frequency: " +
+            this.frequency[nextNote]
+        );
         synth.triggerAttackRelease(this.notes[nextNote], "8n");
       }
     });
@@ -61,35 +73,44 @@ export default {
       synth.triggerAttackRelease("Bb4", "8n", now + 1.5);
       synth.triggerAttackRelease("C5", "8n", now + 1.8);
     },
-    calculateNext(){
-     
-        let nextNote = parseFloat(Math.random()).toFixed(2) ;
-        let sum = this.probability[this.last[0]][0];
-        console.log("start" + sum + " " + nextNote);
-        let play = 0;
-        
-        for(let i = 0; i < 7; i++ ){
-          console.log(sum + " " + nextNote);
-          sum += this.probability[this.last[0]][play];
-          if(sum < nextNote){
-            play ++;
-          }else{
-             this.last[0] = play;
-            return play;
-          }
-          
-        }
+    calculateNext() {
+      let nextNote = parseFloat(Math.random()).toFixed(2);
+      let sum = this.probability[this.last[0]][0];
+      // console.log("start" + sum + " " + nextNote);
+      let play = 0;
+
+      for (let i = 0; i < 7; i++) {
+        // console.log(sum + " " + nextNote);
+        sum += this.probability[this.last[0]][play];
+        if (sum < nextNote) {
+          play++;
+        } else {
+          this.last[0] = play;
           return play;
-      
-       
+        }
+      }
+      return play;
+
       // }
       // let next = this.probability[0];
-
     },
-    playChords(){
-     
-     let chordNum = 0;
-      const chords = [
+    async changeState() {
+      if (this.playingChords) {
+        await Tone.start();
+        Tone.Transport.bpm.value = 141;
+        this.playChords();
+        Tone.Transport.start();
+      } else {
+        Tone.Transport.stop();
+        // this.loop.rese();
+      }
+      this.playingChords = !this.playingChords;
+    },
+    async playChords() {
+      console.log(this.playingChords);
+
+      let chordNum = 0;
+      const playingChords = [
         ["B3", "D3", "F#3"], // Bm (vi)
         ["G3", "B3", "D3"], // G (iv)
         ["D3", "F#3", "A3"], // D (i)
@@ -97,14 +118,14 @@ export default {
       ];
       const synth = new Tone.PolySynth().toDestination();
       synth.volume.value = -6;
-      while(!this.chords){
-        new Tone.Loop
-        console.log("boton");
-        synth.triggerAttackRelease(chords[chordNum], "2m");
+      // this.loop = new Tone.loop(() =>{
+      while (this.playingChords) {
+        console.log("plating chords");
+        synth.triggerAttackRelease(playingChords[chordNum], "8n");
         chordNum = (chordNum + 1) % 4;
-      } 
-         
-      
+        await delay(1);
+      }
+      // }, "2m").start(0);
     },
   },
 };
